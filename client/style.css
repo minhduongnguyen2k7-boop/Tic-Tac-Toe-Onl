@@ -1,40 +1,37 @@
-/* style.css */
+/* General board styling */
+#board {
+  display: grid;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 12px;
+}
 
-/* Base cell styling */
+/* Cell styling */
 .cell {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid #d1d5db; /* Tailwind gray-300 */
-  font-size: 22px;
   font-weight: bold;
+  border-radius: 6px;
   cursor: pointer;
-  border-radius: 0.25rem;     /* rounded */
+  background: #eee;
   user-select: none;
-  background-color: #f9fafb;  /* Tailwind gray-50 */
   transition: background-color 0.2s;
 }
 
 .cell:hover {
-  background-color: #e5e7eb;  /* Tailwind gray-200 */
+  background-color: #e5e7eb; /* light gray hover */
 }
 
-/* Player 1 cells */
+/* Player colors */
 .p1 {
-  background-color: #bfdbfe;  /* Tailwind blue-200 */
-  color: #1e3a8a;             /* Tailwind blue-800 */
+  background-color: #3b82f6; /* Tailwind blue-500 */
+  color: white;
 }
 
-/* Player 2 cells */
 .p2 {
-  background-color: #bbf7d0;  /* Tailwind green-200 */
-  color: #166534;             /* Tailwind green-800 */
-}
-
-/* Status text */
-#status {
-  font-size: 1.125rem;        /* text-lg */
-  font-weight: 600;           /* font-semibold */
+  background-color: #f97316; /* Tailwind orange-500 */
+  color: white;
 }

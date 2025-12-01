@@ -103,12 +103,12 @@ canvas.addEventListener('click', (e) => {
   const scaleX = canvas.width / rect.width;
   const scaleY = canvas.height / rect.height;
 
-  const col = Math.floor(x * scaleX / cellSize);
-  const row = Math.floor(y * scaleY / cellSize);
-  zoom = canvas.width / (cellSize * 5);
-  offsetX = 0;
-  offsetY = 0;
+  // 🔥 Correct for zoom and pan
+  const trueX = x * scaleX / zoom - offsetX;
+  const trueY = y * scaleY / zoom - offsetY;
 
+  const col = Math.floor(trueX / cellSize);
+  const row = Math.floor(trueY / cellSize);
 
   onCellClick(row, col);
 });
@@ -160,7 +160,10 @@ socket.on('roomCreated', (data) => {
     myPlayerNumber = null; // both players share device
     setStatus(`Local game ${roomCode}. Turn: Player ${turn}`);
   }
-
+  // Auto zoom so 5x5 cells fill canvas width
+zoom = canvas.width / (cellSize * 5);
+offsetX = 0;
+offsetY = 0;
   renderBoard();
   rematchBtn.style.display = 'none';
 });

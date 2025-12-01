@@ -28,6 +28,7 @@ function renderBoard() {
       const div = document.createElement('div');
       div.className = 'cell' + (cell === 1 ? ' p1' : cell === 2 ? ' p2' : '');
       div.textContent = cell === 0 ? '' : cell === 1 ? 'X' : 'O';
+      console.log(`Cell [${r},${c}] =`, div.textContent);
       div.addEventListener('click', () => onCellClick(r, c));
       boardEl.appendChild(div);
     });

@@ -25,34 +25,34 @@ io.on('connection', (socket) => {
   socket.on('createRoom', ({ boxes, mode }) => {
     const n = Math.max(5, Number(boxes) || 10);
     const roomCode = nanoid(6).toUpperCase();
-    const roomMode = mode === 'bot' ? 'bot' : 'pvp';
+    const roomMode = mode === 'bot' ? 'bot' : mode === 'local' ? 'local' : 'pvp';
 
     rooms[roomCode] = {
-      players: [socket.id], // first player
-      boxes: n,
-      board: createEmptyBoard(n),
-      turn: 1,
-      status: 'waiting',
-      count: 0,
-      mode: roomMode
-    };
+   players: [socket.id],
+   boxes: n,
+   board: createEmptyBoard(n),
+   turn: 1,
+   status: roomMode === 'pvp' ? 'waiting' : 'playing',
+   count: 0,
+   mode: roomMode
+  };
 
     socket.join(roomCode);
     socket.emit('roomCreated', { roomCode, boxes: n, mode: roomMode });
 
     // If bot mode, start immediately (no second player)
-    if (roomMode === 'bot') {
-      rooms[roomCode].status = 'playing';
-      io.to(roomCode).emit('gameStarted', {
-        roomCode,
-        boxes: n,
-        turn: 1,
-        players: [socket.id, 'BOT'],
-        board: rooms[roomCode].board,
-        mode: roomMode
-      });
-    }
+    if (roomMode === 'bot' || roomMode === 'local') {
+  rooms[roomCode].status = 'playing';
+  io.to(roomCode).emit('gameStarted', {
+    roomCode,
+    boxes: n,
+    turn: 1,
+    players: roomMode === 'bot' ? [socket.id, 'BOT'] : [socket.id],
+    board: rooms[roomCode].board,
+    mode: roomMode
   });
+}
+});
 
   // Join room (only for pvp)
   socket.on('joinRoom', ({ roomCode }) => {
@@ -105,25 +105,29 @@ io.on('connection', (socket) => {
     const isBotMode = room.mode === 'bot';
     let playerNumber = 1;
 
-    if (!isBotMode) {
-      const idx = room.players.indexOf(socket.id);
-      if (idx === -1) return;
-      playerNumber = idx + 1;
-      if (playerNumber !== room.turn) {
-        socket.emit('errorMessage', { message: 'Not your turn' });
-        return;
-      }
-    } else {
-      // In bot mode, only player 1 is human
-      if (socket.id !== room.players[0]) {
-        socket.emit('errorMessage', { message: 'Not your game' });
-        return;
-      }
-      if (room.turn !== 1) {
-        socket.emit('errorMessage', { message: 'Wait for your turn' });
-        return;
-      }
-    }
+if (room.mode === 'pvp') {
+  const idx = room.players.indexOf(socket.id);
+  if (idx === -1) return;
+  playerNumber = idx + 1;
+  if (playerNumber !== room.turn) {
+    socket.emit('errorMessage', { message: 'Not your turn' });
+    return;
+  }
+} else if (room.mode === 'bot') {
+  // In bot mode, only player 1 is human
+  if (socket.id !== room.players[0]) {
+    socket.emit('errorMessage', { message: 'Not your game' });
+    return;
+  }
+  if (room.turn !== 1) {
+    socket.emit('errorMessage', { message: 'Wait for your turn' });
+    return;
+  }
+  playerNumber = 1;
+} else if (room.mode === 'local') {
+  // Local mode: both players share device, alternate turns
+  playerNumber = room.turn;
+}
 
     // Apply human move
     room.board[row][col] = playerNumber;
@@ -147,12 +151,13 @@ io.on('connection', (socket) => {
       return;
     }
 
-    if (!isBotMode) {
-      // PvP: switch turn
-      room.turn = room.turn === 1 ? 2 : 1;
-      io.to(code).emit('turnChanged', { turn: room.turn });
-      return;
-    }
+    if (room.mode === 'pvp' || room.mode === 'local') {
+   // PvP or Local: switch turn
+   room.turn = room.turn === 1 ? 2 : 1;
+   io.to(code).emit('turnChanged', { turn: room.turn });
+   return;   // stop here, don’t fall into bot logic
+}
+
 
     // Bot mode: bot responds
     room.turn = 2;

@@ -9,6 +9,7 @@ let board = [];
 let mode = 'pvp'; // 'pvp' or 'bot'
 
 const boxesInput = document.getElementById('boxes');
+const createLocalBtn = document.getElementById('createLocalBtn');
 const createPvpBtn = document.getElementById('createPvpBtn');
 const createBotBtn = document.getElementById('createBotBtn');
 const joinBtn = document.getElementById('joinBtn');
@@ -39,13 +40,20 @@ function onCellClick(r, c) {
 
   if (mode === 'pvp') {
     if (myPlayerNumber !== turn) { setStatus('Wait for your turn'); return; }
-  } else {
-    // bot mode: you are player 1, only click when turn==1
+  } else if (mode === 'bot') {
     if (turn !== 1) { setStatus('Wait for your turn'); return; }
+  } else if (mode === 'local') {
+    // In local mode, allow whichever player's turn it is
+    // No need to check socket.id
   }
 
   socket.emit('makeMove', { roomCode, row: r, col: c });
 }
+
+createLocalBtn.addEventListener('click', () => {
+  boxes = Math.max(5, Number(boxesInput.value) || 10);
+  socket.emit('createRoom', { boxes, mode: 'local' });
+});
 
 createPvpBtn.addEventListener('click', () => {
   boxes = Math.max(5, Number(boxesInput.value) || 10);
@@ -74,7 +82,7 @@ socket.on('roomCreated', (data) => {
   setStatus(`Room ${mode === 'bot' ? 'BOT' : 'PVP'} created. Code: ${roomCode}. ${mode === 'bot' ? 'Game starts now.' : 'Waiting for opponent...'}`);
 });
 
-socket.on('gameStarted', (data) => {
+  socket.on('gameStarted', (data) => {
   roomCode = data.roomCode;
   boxes = data.boxes;
   board = data.board;
@@ -86,18 +94,16 @@ socket.on('gameStarted', (data) => {
     const idx = data.players.indexOf(me);
     myPlayerNumber = idx + 1;
     setStatus(`PvP game ${roomCode}. You are Player ${myPlayerNumber}. Turn: Player ${turn}`);
-  } else {
-    myPlayerNumber = 1; // you vs bot
+  } else if (mode === 'bot') {
+    myPlayerNumber = 1;
     setStatus(`Bot game ${roomCode}. You are Player 1. Turn: Player ${turn}`);
+  } else if (mode === 'local') {
+    myPlayerNumber = null; // both players share device
+    setStatus(`Local game ${roomCode}. Turn: Player ${turn}`);
   }
 
   renderBoard();
   rematchBtn.style.display = 'none';
-});
-
-socket.on('boardUpdated', ({ board: b }) => {
-  board = b;
-  renderBoard();
 });
 
 socket.on('turnChanged', ({ turn: t }) => {

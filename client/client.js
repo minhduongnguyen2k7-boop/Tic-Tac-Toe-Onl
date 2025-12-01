@@ -49,6 +49,7 @@ function onCellClick(r, c) {
   }
 
   socket.emit('makeMove', { roomCode, row: r, col: c });
+  console.log('Sending move', r, c, 'room', roomCode);
 }
 
 createLocalBtn.addEventListener('click', () => {
@@ -110,6 +111,12 @@ socket.on('roomCreated', (data) => {
 socket.on('turnChanged', ({ turn: t }) => {
   turn = t;
   setStatus(`Turn: Player ${turn}`);
+});
+
+socket.on('boardUpdated', ({ board: b }) => {
+  console.log('Received boardUpdated', b);
+  board = b;
+  renderBoard();
 });
 
 socket.on('gameFinished', ({ winner }) => {

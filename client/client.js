@@ -1,6 +1,9 @@
 // public/client.js
 const socket = io();
 
+let zoom = 1;        // current zoom factor
+let offsetX = 0;     // pan offset X
+let offsetY = 0;     // pan offset Y
 let myPlayerNumber = null;
 let roomCode = null;
 let boxes = 10;
@@ -26,34 +29,32 @@ let cellSize = 40; // pixels per cell
 
 function renderBoard() {
   const n = board.length;
-  const maxCanvasWidth = window.innerWidth * 0.9;
-  cellSize = Math.floor(maxCanvasWidth / board.length);
-  canvas.width = n * cellSize;
-  canvas.height = n * cellSize;
-  canvas.style.width = '100%';
-  canvas.style.height = 'auto';
+  canvas.width = window.innerWidth * 0.9;
+  canvas.height = window.innerHeight * 0.8;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   for (let r = 0; r < n; r++) {
     for (let c = 0; c < n; c++) {
-      // draw grid
-      ctx.strokeStyle = '#d1d5db'; // gray-300
-      ctx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
+      const x = (c * cellSize + offsetX) * zoom;
+      const y = (r * cellSize + offsetY) * zoom;
+      const size = cellSize * zoom;
 
-      // draw pieces
+      ctx.strokeStyle = '#d1d5db';
+      ctx.strokeRect(x, y, size, size);
+
       if (board[r][c] === 1) {
-        ctx.fillStyle = '#1e3a8a'; // blue-800
-        ctx.font = `${cellSize * 0.6}px sans-serif`;
+        ctx.fillStyle = '#1e3a8a';
+        ctx.font = `${size * 0.6}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('X', c * cellSize + cellSize/2, r * cellSize + cellSize/2);
+        ctx.fillText('X', x + size/2, y + size/2);
       } else if (board[r][c] === 2) {
-        ctx.fillStyle = '#166534'; // green-800
-        ctx.font = `${cellSize * 0.6}px sans-serif`;
+        ctx.fillStyle = '#166534';
+        ctx.font = `${size * 0.6}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('O', c * cellSize + cellSize/2, r * cellSize + cellSize/2);
+        ctx.fillText('O', x + size/2, y + size/2);
       }
     }
   }
@@ -105,6 +106,21 @@ canvas.addEventListener('click', (e) => {
   const row = Math.floor(y * scaleY / cellSize);
 
   onCellClick(row, col);
+});
+
+canvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const zoomFactor = 1.1;
+  if (e.deltaY < 0) {
+    zoom *= zoomFactor;   // zoom in
+  } else {
+    zoom /= zoomFactor;   // zoom out
+  }
+  // Fit 5x5 cells to canvas width
+zoom = canvas.width / (cellSize * 5);
+offsetX = 0;
+offsetY = 0;
+  renderBoard();
 });
 
 rematchBtn.addEventListener('click', () => {

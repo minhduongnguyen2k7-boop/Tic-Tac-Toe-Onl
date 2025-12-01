@@ -105,22 +105,27 @@ canvas.addEventListener('click', (e) => {
 
   const col = Math.floor(x * scaleX / cellSize);
   const row = Math.floor(y * scaleY / cellSize);
+  zoom = canvas.width / (cellSize * 5);
+  offsetX = 0;
+  offsetY = 0;
+
 
   onCellClick(row, col);
 });
 
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
-  const zoomFactor = 0.05; // smaller step
+
+  // smaller zoom step
+  const zoomStep = 0.1;
+
   if (e.deltaY < 0) {
-    zoom = Math.min(zoom + zoomFactor, 3);   // zoom in, max 3x
+    // scroll up → zoom in
+    zoom = Math.min(zoom + zoomStep, 3);   // max 3x
   } else {
-    zoom = Math.max(zoom - zoomFactor, 0.2); // zoom out, min 0.2x
+    // scroll down → zoom out
+    zoom = Math.max(zoom - zoomStep, 0.2); // min 0.2x
   }
-  // Fit 5x5 cells to canvas width
-zoom = canvas.width / (cellSize * 5);
-offsetX = 0;
-offsetY = 0;
   renderBoard();
 });
 

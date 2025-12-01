@@ -8,9 +8,8 @@
 
 /* Cell styling */
 .cell {
-  width: 36px;
-  height: 36px;
-  border: 1px solid #999;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;

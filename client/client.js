@@ -29,6 +29,7 @@ let cellSize = 40; // pixels per cell
 
 function renderBoard() {
   const n = board.length;
+
   canvas.width = window.innerWidth * 0.9;
   canvas.height = window.innerHeight * 0.8;
 
@@ -45,16 +46,16 @@ function renderBoard() {
 
       if (board[r][c] === 1) {
         ctx.fillStyle = '#1e3a8a';
-        ctx.font = `${size * 0.6}px sans-serif`;
+        ctx.font = `${Math.max(size * 0.6, 12)}px sans-serif`; // ensure readable
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('X', x + size/2, y + size/2);
+        ctx.fillText('X', x + size / 2, y + size / 2);
       } else if (board[r][c] === 2) {
         ctx.fillStyle = '#166534';
-        ctx.font = `${size * 0.6}px sans-serif`;
+        ctx.font = `${Math.max(size * 0.6, 12)}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('O', x + size/2, y + size/2);
+        ctx.fillText('O', x + size / 2, y + size / 2);
       }
     }
   }
@@ -110,11 +111,11 @@ canvas.addEventListener('click', (e) => {
 
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
-  const zoomFactor = 1.1;
+  const zoomFactor = 0.05; // smaller step
   if (e.deltaY < 0) {
-    zoom *= zoomFactor;   // zoom in
+    zoom = Math.min(zoom + zoomFactor, 3);   // zoom in, max 3x
   } else {
-    zoom /= zoomFactor;   // zoom out
+    zoom = Math.max(zoom - zoomFactor, 0.2); // zoom out, min 0.2x
   }
   // Fit 5x5 cells to canvas width
 zoom = canvas.width / (cellSize * 5);

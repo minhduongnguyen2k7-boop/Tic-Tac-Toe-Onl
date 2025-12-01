@@ -1,35 +1,51 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Online Five-in-a-Row</title>
-  <style>
-    body { font-family: sans-serif; max-width: 800px; margin: 24px auto; }
-    #board { display: grid; gap: 4px; margin-top: 12px; }
-    .cell {
-      width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-      background: #eee; cursor: pointer; font-weight: bold; border-radius: 4px; user-select: none;
-    }
-    .p1 { background: #cde; }
-    .p2 { background: #dec; }
-    #controls { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-    #status { margin-top: 12px; font-weight: 600; }
-  </style>
+  <!-- TailwindCSS via CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Your custom styles -->
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <h1>Online Five-in-a-Row</h1>
+<body class="bg-gray-100 font-sans">
+  <div class="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg">
+    <h1 class="text-2xl font-bold text-center mb-6">🎮 Online Five-in-a-Row</h1>
 
-  <div id="controls">
-    <label>Boxes (>=5): <input id="boxes" type="number" value="10" min="5"></label>
-    <button id="createPvpBtn">Create PvP room</button>
-    <button id="createBotBtn">Create Bot room</button>
-    <label>Join code: <input id="roomCode" type="text" placeholder="ABC123"></label>
-    <button id="joinBtn">Join room</button>
+    <div id="controls" class="flex flex-wrap gap-4 justify-center mb-4">
+      <label class="flex items-center gap-2">
+        Boxes (≥5): 
+        <input id="boxes" type="number" value="10" min="5" 
+               class="border rounded px-2 py-1 w-20">
+      </label>
+      <button id="createPvpBtn" 
+              class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+        Create PvP
+      </button>
+      <button id="createBotBtn" 
+              class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+        Play Bot
+      </button>
+      <label class="flex items-center gap-2">
+        Join code: 
+        <input id="roomCode" type="text" placeholder="ABC123" 
+               class="border rounded px-2 py-1 w-24">
+      </label>
+      <button id="joinBtn" 
+              class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">
+        Join
+      </button>
+    </div>
+
+    <div id="status" class="text-center font-semibold mb-4"></div>
+
+    <div id="board" class="grid gap-1 justify-center"></div>
+
+    <button id="rematchBtn" 
+            class="hidden mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+      Rematch
+    </button>
   </div>
-
-  <div id="status"></div>
-  <div id="board"></div>
-  <button id="rematchBtn" style="display:none;">Rematch</button>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="client.js"></script>

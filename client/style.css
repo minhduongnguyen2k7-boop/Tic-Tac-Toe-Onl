@@ -1,0 +1,37 @@
+/* General board styling */
+#board {
+  display: grid;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+/* Cell styling */
+.cell {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #eee;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.cell:hover {
+  background-color: #e5e7eb; /* light gray hover */
+}
+
+/* Player colors */
+.p1 {
+  background-color: #3b82f6; /* Tailwind blue-500 */
+  color: white;
+}
+
+.p2 {
+  background-color: #f97316; /* Tailwind orange-500 */
+  color: white;
+}

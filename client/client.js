@@ -115,11 +115,21 @@ socket.on('turnChanged', ({ turn: t }) => {
 
 socket.on('boardUpdated', ({ board: b, lastMove }) => {
   board = b;
-  const { row, col, player } = lastMove;
-  const cellEl = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-  if (cellEl) {
-    cellEl.textContent = player === 1 ? 'X' : 'O';
-    cellEl.classList.add(player === 1 ? 'p1' : 'p2');
+
+  // If no cells exist yet, build the whole board
+  if (!document.querySelector('[data-row]')) {
+    renderBoard();
+    return;
+  }
+
+  // Otherwise update only the changed cell
+  if (lastMove) {
+    const { row, col, player } = lastMove;
+    const cellEl = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    if (cellEl) {
+      cellEl.textContent = player === 1 ? 'X' : 'O';
+      cellEl.classList.add(player === 1 ? 'p1' : 'p2');
+    }
   }
 });
 

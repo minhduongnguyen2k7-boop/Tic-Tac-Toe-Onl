@@ -20,19 +20,39 @@ const rematchBtn = document.getElementById('rematchBtn');
 
 function setStatus(text) { statusEl.textContent = text; }
 
+const canvas = document.getElementById('boardCanvas');
+const ctx = canvas.getContext('2d');
+let cellSize = 40; // pixels per cell
+
 function renderBoard() {
-  boardEl.innerHTML = '';
-  boardEl.style.gridTemplateColumns = `repeat(${boxes}, 36px)`;
-  board.forEach((row, r) => {
-    row.forEach((cell, c) => {
-      const div = document.createElement('div');
-      div.className = 'cell' + (cell === 1 ? ' p1' : cell === 2 ? ' p2' : '');
-      div.textContent = cell === 0 ? '' : cell === 1 ? 'X' : 'O';
-      console.log(`Cell [${r},${c}] =`, div.textContent);
-      div.addEventListener('click', () => onCellClick(r, c));
-      boardEl.appendChild(div);
-    });
-  });
+  const n = board.length;
+  canvas.width = n * cellSize;
+  canvas.height = n * cellSize;
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let r = 0; r < n; r++) {
+    for (let c = 0; c < n; c++) {
+      // draw grid
+      ctx.strokeStyle = '#d1d5db'; // gray-300
+      ctx.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
+
+      // draw pieces
+      if (board[r][c] === 1) {
+        ctx.fillStyle = '#1e3a8a'; // blue-800
+        ctx.font = `${cellSize * 0.6}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('X', c * cellSize + cellSize/2, r * cellSize + cellSize/2);
+      } else if (board[r][c] === 2) {
+        ctx.fillStyle = '#166534'; // green-800
+        ctx.font = `${cellSize * 0.6}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('O', c * cellSize + cellSize/2, r * cellSize + cellSize/2);
+      }
+    }
+  }
 }
 
 function onCellClick(r, c) {
@@ -66,10 +86,15 @@ createBotBtn.addEventListener('click', () => {
   socket.emit('createRoom', { boxes, mode: 'bot' });
 });
 
-joinBtn.addEventListener('click', () => {
-  const code = roomCodeInput.value.trim();
-  if (!code) return;
-  socket.emit('joinRoom', { roomCode: code });
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const col = Math.floor(x / cellSize);
+  const row = Math.floor(y / cellSize);
+
+  onCellClick(row, col);
 });
 
 rematchBtn.addEventListener('click', () => {
@@ -113,24 +138,9 @@ socket.on('turnChanged', ({ turn: t }) => {
   setStatus(`Turn: Player ${turn}`);
 });
 
-socket.on('boardUpdated', ({ board: b, lastMove }) => {
+socket.on('boardUpdated', ({ board: b }) => {
   board = b;
-
-  // If no cells exist yet, build the whole board
-  if (!document.querySelector('[data-row]')) {
-    renderBoard();
-    return;
-  }
-
-  // Otherwise update only the changed cell
-  if (lastMove) {
-    const { row, col, player } = lastMove;
-    const cellEl = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
-    if (cellEl) {
-      cellEl.textContent = player === 1 ? 'X' : 'O';
-      cellEl.classList.add(player === 1 ? 'p1' : 'p2');
-    }
-  }
+  renderBoard();
 });
 
 socket.on('gameFinished', ({ winner }) => {

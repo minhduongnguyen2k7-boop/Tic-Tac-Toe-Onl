@@ -26,8 +26,12 @@ let cellSize = 40; // pixels per cell
 
 function renderBoard() {
   const n = board.length;
+  const maxCanvasWidth = window.innerWidth * 0.9;
+  cellSize = Math.floor(maxCanvasWidth / board.length);
   canvas.width = n * cellSize;
   canvas.height = n * cellSize;
+  canvas.style.width = '100%';
+  canvas.style.height = 'auto';
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 

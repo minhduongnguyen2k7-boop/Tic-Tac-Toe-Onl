@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <title>Online Five-in-a-Row</title>
-  <!-- TailwindCSS via CDN -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- TailwindCSS via CDN (runtime script) -->
+<script src="https://cdn.tailwindcss.com"></script>
   <!-- Your custom styles -->
   <link rel="stylesheet" href="style.css">
 </head>
@@ -14,40 +14,38 @@
 
     <div id="controls" class="flex flex-wrap gap-4 justify-center mb-4">
       <label class="flex items-center gap-2">
-        Boxes (≥5): 
-        <input id="boxes" type="number" value="10" min="5" 
+        Boxes (≥5):
+        <input id="boxes" type="number" value="10" min="5"
                class="border rounded px-2 py-1 w-20">
       </label>
-      <button id="createLocalBtn" 
+      <button id="createLocalBtn"
         class="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600">
         Local 2‑Player
-        </button>
-      <button id="createPvpBtn" 
+      </button>
+      <button id="createPvpBtn"
               class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
         Create PvP
       </button>
-      <button id="createBotBtn" 
+      <button id="createBotBtn"
               class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
         Play Bot
       </button>
-  
-      </button>
       <label class="flex items-center gap-2">
-        Join code: 
-        <input id="roomCode" type="text" placeholder="ABC123" 
+        Join code:
+        <input id="roomCode" type="text" placeholder="ABC123"
                class="border rounded px-2 py-1 w-24">
       </label>
-      <button id="joinBtn" 
+      <button id="joinBtn"
               class="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">
         Join
       </button>
     </div>
 
-    <div id="status" class="text-center font-semibold mb-4"></div>
+    <div id="status" class="text-center font-semibold text-lg mb-4"></div>
 
-    <div id="board" class="grid gap-1 justify-center"></div>
+    <div id="board" class="grid gap-1 justify-center mt-4"></div>
 
-    <button id="rematchBtn" 
+    <button id="rematchBtn"
             class="hidden mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
       Rematch
     </button>

@@ -1,0 +1,26 @@
+{
+  "name": "tic-tac-toe",
+  "version": "1.0.0",
+  "description": "",
+  "main": "gamelogic.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/minhduongnguyen2k7-boop/Tic-Tac-Toe-Onl.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/minhduongnguyen2k7-boop/Tic-Tac-Toe-Onl/issues"
+  },
+  "homepage": "https://github.com/minhduongnguyen2k7-boop/Tic-Tac-Toe-Onl#readme",
+  "dependencies": {
+    "express": "^5.1.0",
+    "ws": "^8.18.3"
+  }
+}

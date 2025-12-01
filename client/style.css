@@ -1,4 +1,44 @@
-/* General board styling */
+body {
+  font-family: sans-serif;
+  background: #f3f4f6; /* light gray background */
+  max-width: 900px;
+  margin: 24px auto;
+  padding: 16px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+#controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+button:hover {
+  background-color: #ddd;
+}
+
+#status {
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
 #board {
   display: grid;
   gap: 4px;
@@ -6,32 +46,30 @@
   margin-top: 12px;
 }
 
-/* Cell styling */
 .cell {
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #eee;
+  cursor: pointer;
   font-weight: bold;
   border-radius: 6px;
-  cursor: pointer;
-  background: #eee;
   user-select: none;
   transition: background-color 0.2s;
 }
 
 .cell:hover {
-  background-color: #e5e7eb; /* light gray hover */
+  background-color: #e5e7eb;
 }
 
-/* Player colors */
 .p1 {
-  background-color: #3b82f6; /* Tailwind blue-500 */
+  background-color: #3b82f6; /* blue */
   color: white;
 }
 
 .p2 {
-  background-color: #f97316; /* Tailwind orange-500 */
+  background-color: #f97316; /* orange */
   color: white;
 }

@@ -113,10 +113,14 @@ socket.on('turnChanged', ({ turn: t }) => {
   setStatus(`Turn: Player ${turn}`);
 });
 
-socket.on('boardUpdated', ({ board: b }) => {
-  console.log('Received boardUpdated', b);
+socket.on('boardUpdated', ({ board: b, lastMove }) => {
   board = b;
-  renderBoard();
+  const { row, col, player } = lastMove;
+  const cellEl = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+  if (cellEl) {
+    cellEl.textContent = player === 1 ? 'X' : 'O';
+    cellEl.classList.add(player === 1 ? 'p1' : 'p2');
+  }
 });
 
 socket.on('gameFinished', ({ winner }) => {

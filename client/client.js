@@ -92,11 +92,17 @@ createBotBtn.addEventListener('click', () => {
 
 canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
+
+  // Get click position relative to displayed size
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
 
-  const col = Math.floor(x / cellSize);
-  const row = Math.floor(y / cellSize);
+  // Scale back to internal resolution
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  const col = Math.floor(x * scaleX / cellSize);
+  const row = Math.floor(y * scaleY / cellSize);
 
   onCellClick(row, col);
 });

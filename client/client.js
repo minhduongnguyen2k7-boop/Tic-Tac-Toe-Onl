@@ -22,7 +22,7 @@ function setStatus(text) { statusEl.textContent = text; }
 
 function renderBoard() {
   boardEl.innerHTML = '';
-  boardEl.style.gridTemplateColumns = `repeat(${boxes}, 36px)`;
+  boardEl.style.gridTemplateColumns = `repeat(${boxes}, 40px)`;
   board.forEach((row, r) => {
     row.forEach((cell, c) => {
       const div = document.createElement('div');

@@ -21,6 +21,7 @@
   "homepage": "https://github.com/minhduongnguyen2k7-boop/Tic-Tac-Toe-Onl#readme",
   "dependencies": {
     "express": "^5.1.0",
+    "socket.io": "^4.8.1",
     "ws": "^8.18.3"
   }
 }

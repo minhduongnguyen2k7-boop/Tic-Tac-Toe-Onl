@@ -1,9 +1,6 @@
-// public/client.js
+    // public/client.js
 const socket = io();
 
-let zoom = 1;        // current zoom factor
-let offsetX = 0;     // pan offset X
-let offsetY = 0;     // pan offset Y
 let myPlayerNumber = null;
 let roomCode = null;
 let boxes = 10;
@@ -23,35 +20,20 @@ const rematchBtn = document.getElementById('rematchBtn');
 
 function setStatus(text) { statusEl.textContent = text; }
 
-const canvas = document.getElementById('boardCanvas');
-const ctx = canvas.getContext('2d');
-let cellSize = 40; // pixels per cell
-
 function renderBoard() {
-  window.requestAnimationFrame(() => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const n = board.length;
-    for (let r = 0; r < n; r++) {
-      for (let c = 0; c < n; c++) {
-        const x = (c * cellSize + offsetX) * zoom;
-        const y = (r * cellSize + offsetY) * zoom;
-        const size = cellSize * zoom;
-
-        ctx.strokeStyle = '#d1d5db';
-        ctx.strokeRect(x, y, size, size);
-
-        if (board[r][c] === 1 || board[r][c] === 2) {
-          ctx.fillStyle = board[r][c] === 1 ? '#1e3a8a' : '#166534';
-          ctx.font = `${Math.max(size * 0.6, 12)}px sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText(board[r][c] === 1 ? 'X' : 'O', x + size / 2, y + size / 2);
-        }
-      }
-    }
+  boardEl.innerHTML = '';
+  boardEl.style.gridTemplateColumns = `repeat(${boxes}, 36px)`;
+  board.forEach((row, r) => {
+    row.forEach((cell, c) => {
+      const div = document.createElement('div');
+      div.className = 'cell' + (cell === 1 ? ' p1' : cell === 2 ? ' p2' : '');
+      div.textContent = cell === 0 ? '' : cell === 1 ? 'X' : 'O';
+      console.log(`Cell [${r},${c}] =`, div.textContent);
+      div.addEventListener('click', () => onCellClick(r, c));
+      boardEl.appendChild(div);
+    });
   });
-}
+  }
 
 function onCellClick(r, c) {
   if (!roomCode) return;
@@ -84,46 +66,11 @@ createBotBtn.addEventListener('click', () => {
   socket.emit('createRoom', { boxes, mode: 'bot' });
 });
 
-canvas.addEventListener('click', (e) => {
-  const rect = canvas.getBoundingClientRect();
-
-  // Get click position relative to displayed size
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-
-  // Scale back to internal resolution
-  const scaleX = canvas.width / rect.width;
-  const scaleY = canvas.height / rect.height;
-
-  // 🔥 Correct for zoom and pan
-  const trueX = x * scaleX / zoom - offsetX;
-  const trueY = y * scaleY / zoom - offsetY;
-
-  const col = Math.floor(trueX / cellSize);
-  const row = Math.floor(trueY / cellSize);
-
-  onCellClick(row, col);
+joinBtn.addEventListener('click', () => {
+  const code = roomCodeInput.value.trim();
+  if (!code) return;
+  socket.emit('joinRoom', { roomCode: code });
 });
-
-canvas.addEventListener('wheel', (e) => {
-  e.preventDefault();
-
-  const zoomStep = 0.1;
-  const boardPixelSize = board.length * cellSize;
-  const minZoomX = canvas.width / boardPixelSize;
-  const minZoomY = canvas.height / boardPixelSize;
-  const minZoom = Math.max(minZoomX, minZoomY); // allow full board to fit
-  const maxZoom = 3;
-
-  if (e.deltaY < 0) {
-    zoom = Math.min(zoom + zoomStep, maxZoom);   // scroll up → zoom in
-  } else {
-    zoom = Math.max(zoom - zoomStep, minZoom);   // scroll down → zoom out
-  }
-
-  renderBoard();
-});
-
 
 rematchBtn.addEventListener('click', () => {
   if (roomCode) socket.emit('requestRematch', { roomCode });
@@ -150,23 +97,14 @@ socket.on('roomCreated', (data) => {
     myPlayerNumber = idx + 1;
     setStatus(`PvP game ${roomCode}. You are Player ${myPlayerNumber}. Turn: Player ${turn}`);
   } else if (mode === 'bot') {
-    myPlayerNumber = 1;
+myPlayerNumber = 1;
     setStatus(`Bot game ${roomCode}. You are Player 1. Turn: Player ${turn}`);
   } else if (mode === 'local') {
     myPlayerNumber = null; // both players share device
     setStatus(`Local game ${roomCode}. Turn: Player ${turn}`);
   }
-  // Auto zoom so 5x5 cells fill canvas width
-board = createBoard(size);
-// Zoom so 5x5 cells fill canvas width
-zoom = canvas.width / (cellSize * 5);
-// Center the view on the middle of the board
-const centerCol = board.length / 2 - 2.5;
-const centerRow = board.length / 2 - 2.5;
-offsetX = -centerCol * cellSize;
-offsetY = -centerRow * cellSize;
 
-renderBoard();
+  renderBoard();
   rematchBtn.style.display = 'none';
 });
 
@@ -175,21 +113,24 @@ socket.on('turnChanged', ({ turn: t }) => {
   setStatus(`Turn: Player ${turn}`);
 });
 
-socket.on('boardUpdated', ({ board: b }) => {
+socket.on('boardUpdated', ({ board: b, lastMove }) => {
   board = b;
-  board = createBoard(size);
+  // If no cells exist yet, build the whole board
+  if (!document.querySelector('[data-row]')) {
+    renderBoard();
+    return;
+  }
 
-// Zoom so 5x5 cells fill canvas width
-zoom = canvas.width / (cellSize * 5);
-
-// Center the view on the middle of the board
-const centerCol = board.length / 2 - 2.5;
-const centerRow = board.length / 2 - 2.5;
-offsetX = -centerCol * cellSize;
-offsetY = -centerRow * cellSize;
-  renderBoard();
+  // Otherwise update only the changed cell
+  if (lastMove) {
+    const { row, col, player } = lastMove;
+    const cellEl = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    if (cellEl) {
+      cellEl.textContent = player === 1 ? 'X' : 'O';
+      cellEl.classList.add(player === 1 ? 'p1' : 'p2');
+    }
+  }
 });
-
 socket.on('gameFinished', ({ winner }) => {
   if (winner === 0) setStatus('Game over: Draw');
   else setStatus(`Game over: Player ${winner} wins`);

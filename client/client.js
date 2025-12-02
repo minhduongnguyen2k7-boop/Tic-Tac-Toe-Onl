@@ -8,12 +8,18 @@ let turn = 1;
 let board = [];
 let mode = 'pvp'; // 'pvp' or 'bot'
 
-let scale = 1;
-let translateX = 0;
-let translateY = 0;
 let isDragging = false;
 let dragStartX = 0;
 let dragStartY = 0;
+let translateX = 0;
+let translateY = 0;
+let scale = 1;
+
+// Drag detection
+const DRAG_THRESHOLD = 6; // pixels
+let dragMoved = false;
+let lastDragTime = 0;
+const DRAG_SUPPRESS_MS = 200; // suppress taps for this long after a drag
 
 const boardWrapper = document.getElementById('boardWrapper');
 
@@ -60,6 +66,9 @@ function renderBoard() {
 }
 
 function onCellClick(r, c) {
+  // Suppress taps if dragging or right after a drag
+if (isDragging) return;
+if (Date.now() - lastDragTime < DRAG_SUPPRESS_MS) return;
   if (!roomCode) return;
   if (board[r][c] !== 0) { setStatus('Cell occupied'); return; }
 
@@ -102,20 +111,67 @@ rematchBtn.addEventListener('click', () => {
 
 boardWrapper.addEventListener('mousedown', (e) => {
   isDragging = true;
+  dragMoved = false;
   dragStartX = e.clientX - translateX;
   dragStartY = e.clientY - translateY;
 });
 
 document.addEventListener('mousemove', (e) => {
   if (!isDragging) return;
+
+  const dx = e.clientX - (dragStartX + translateX);
+  const dy = e.clientY - (dragStartY + translateY);
+
+  // If movement exceeds threshold, consider it a drag
+  if (!dragMoved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
+    dragMoved = true;
+  }
+
   translateX = e.clientX - dragStartX;
   translateY = e.clientY - dragStartY;
   updateTransform();
 });
 
 document.addEventListener('mouseup', () => {
+  if (isDragging && dragMoved) {
+    lastDragTime = Date.now();
+  }
   isDragging = false;
 });
+
+boardWrapper.addEventListener('touchstart', (e) => {
+  if (e.touches.length !== 1) return;
+  e.preventDefault(); // avoid synthetic click
+  const t = e.touches[0];
+  isDragging = true;
+  dragMoved = false;
+  dragStartX = t.clientX - translateX;
+  dragStartY = t.clientY - translateY;
+}, { passive: false });
+
+boardWrapper.addEventListener('touchmove', (e) => {
+  if (e.touches.length !== 1) return;
+  e.preventDefault();
+  const t = e.touches[0];
+
+  const dx = t.clientX - (dragStartX + translateX);
+  const dy = t.clientY - (dragStartY + translateY);
+  if (!dragMoved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
+    dragMoved = true;
+  }
+
+  translateX = t.clientX - dragStartX;
+  translateY = t.clientY - dragStartY;
+  updateTransform();
+}, { passive: false });
+
+boardWrapper.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  if (isDragging && dragMoved) {
+    lastDragTime = Date.now();
+  }
+  isDragging = false;
+}, { passive: false });
 
 boardWrapper.addEventListener('wheel', (e) => {
   e.preventDefault();

@@ -110,7 +110,7 @@ function botturnFramework({
   } else {
     // scan all segments in the allowed ranges
     for (let i = 0; i < n; i++) {
-      for (let j = 0; j <= n - 5; j++) {
+      for (let j = 0; j <n; j++) {
         const res = tryBlock(i, j);
         if (res.placed) return res;
       }

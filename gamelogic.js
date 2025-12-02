@@ -77,8 +77,12 @@ function botturnFramework({
       if (cell === move) {
         possible_win++;
       } else if (cell === 0) {
-        tempx = rr; tempy = cc; zero_value++;
-      } else {
+  zero_value++;
+  if (zero_value === 1) {
+    tempx = rr;
+    tempy = cc;
+  }
+} else {
         // opponent piece breaks this segment
       }
     }
@@ -212,6 +216,15 @@ function botTurn(board) {
     checkXMin: -1, checkYMin: 1, checkXMax: 4, checkYMax: -4
   });
   if (res.placed) return res;
+
+  // Extra horizontal three-in-a-row with open ends
+res = botturnFramework({
+  move: 1, board, compare: 3,
+  namelessArr: nameless[1], secondArr: nameless[0],
+  threeBoxesInARow: true, xRange: board.length, yRange: board.length - 5,
+  checkXMin: 0, checkYMin: -1, checkXMax: 0, checkYMax: 4
+});
+if (res.placed) return res;
 
   // Build bot sequences: 3, 2, 1
   res = botturnFrameworkCompilation(2, board, 3, false, 0, 0, 0, 0);

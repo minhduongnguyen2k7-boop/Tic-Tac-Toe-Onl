@@ -4,9 +4,6 @@ const socket = io();
 let zoom = 1;        // current zoom factor
 let offsetX = 0;     // pan offset X
 let offsetY = 0;     // pan offset Y
-let isDragging = false;
-let dragStartX = 0;
-let dragStartY = 0;
 let myPlayerNumber = null;
 let roomCode = null;
 let boxes = 10;
@@ -130,36 +127,9 @@ canvas.addEventListener('wheel', (e) => {
   renderBoard();
 });
 
-canvas.addEventListener('mousemove', (e) => {
-  if (isDragging) {
-    const dx = (e.clientX - dragStartX) / zoom;
-    const dy = (e.clientY - dragStartY) / zoom;
 
-    offsetX += dx;
-    offsetY += dy;   // ✅ vertical pan added
-
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-
-    renderBoard();
-  }
-});
 rematchBtn.addEventListener('click', () => {
   if (roomCode) socket.emit('requestRematch', { roomCode });
-});
-
-canvas.addEventListener('mousedown', (e) => {
-  isDragging = true;
-  dragStartX = e.clientX;
-  dragStartY = e.clientY;
-});
-
-canvas.addEventListener('mouseup', () => {
-  isDragging = false;
-});
-
-canvas.addEventListener('mouseleave', () => {
-  isDragging = false;
 });
 
 // Socket events

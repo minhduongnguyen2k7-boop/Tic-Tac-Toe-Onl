@@ -1,243 +1,262 @@
-// gameLogic.js
-// Port of your C logic: win check and bot move framework
+// === Game state ===
+let boxes = 15;               // default; set via initGame
+let board = [];               // 2D array boxes x boxes, 0 empty, 1 player, 2 bot/human
+let count = 0;                // placed moves
+let win = 0;                  // 0 playing, 1 someone won, 2 draw
+let currentPlayer = 1;        // 1 starts
+let gameMode = "bot";         // "bot" or "human"
 
-// Direction offset helpers mirroring your C arrays
+// Direction helpers (equivalent of your C nameless arrays)
 const nameless = [
-  [0, 0, 0, 0, 0],     // base
-  [0, -1, -2, -3, -4], // left/up offsets
-  [0, -2, -4, -6, -8]  // stronger left/up offsets
+  [0, 0, 0, 0, 0],           // base
+  [0, -1, -2, -3, -4],       // shift negative
+  [0, -2, -4, -6, -8]        // double shift negative (for left diag in your logic)
 ];
 
-// Create an empty board
-function createEmptyBoard(n) {
-  return Array.from({ length: n }, () => Array(n).fill(0));
+// Bot helper scratch state
+let possibleWin = 0;
+let tempx = 0;
+let tempy = 0;
+let zeroValue = 0;
+
+// === Public API for UI integration ===
+function initGame(size, mode) {
+  boxes = Math.max(5, Number(size) || 15);
+  gameMode = mode === "human" ? "human" : "bot";
+
+  board = Array.from({ length: boxes }, () => Array(boxes).fill(0));
+  count = 0;
+  win = 0;
+  currentPlayer = 1;
+
+  if (typeof renderBoard === "function") renderBoard();
 }
 
-// Win/draw check (five in a row)
-function checkBoard(player, board, count) {
-  const n = board.length;
+function resetGame() {
+  initGame(boxes, gameMode);
+}
 
-  // Horizontal
-  for (let i = 0; i < n; i++) {
-    for (let j = 0; j <= n - 5; j++) {
-      if ([0, 1, 2, 3, 4].every(k => board[i][j + k] === player)) return 1;
-    }
+// Used by canvas click handler
+function onCellClick(row, col) {
+  if (win !== 0) return;
+  if (!inBounds(row, col) || board[row][col] !== 0) return;
+
+  // Player 1 move
+  applyMove(row, col, 1);
+  if (win !== 0) return;
+
+  // Next turn logic
+  if (gameMode === "human") {
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    return;
   }
 
-  // Vertical
-  for (let i = 0; i <= n - 5; i++) {
-    for (let j = 0; j < n; j++) {
-      if ([0, 1, 2, 3, 4].every(k => board[i + k][j] === player)) return 1;
-    }
-  }
+  // Bot move (player 2)
+  botTurn();
+  checkBoard(2);
+  if (typeof renderBoard === "function") renderBoard();
+}
 
-  // Diagonal ↘
-  for (let i = 0; i <= n - 5; i++) {
-    for (let j = 0; j <= n - 5; j++) {
-      if ([0, 1, 2, 3, 4].every(k => board[i + k][j + k] === player)) return 1;
-    }
-  }
+// Optional helpers to expose state to UI
+function getBoard() {
+  return board;
+}
+function getStatus() {
+  return { boxes, win, count, currentPlayer, gameMode };
+}
 
-  // Diagonal ↙
-  for (let i = 0; i <= n - 5; i++) {
-    for (let j = 4; j < n; j++) {
-      if ([0, 1, 2, 3, 4].every(k => board[i + k][j - k] === player)) return 1;
+// === Core game mechanics ===
+function applyMove(row, col, player) {
+  board[row][col] = player;
+  count++;
+  checkBoard(player);
+  if (typeof renderBoard === "function") renderBoard();
+}
+
+function inBounds(r, c) {
+  return r >= 0 && r < boxes && c >= 0 && c < boxes;
+}
+
+// Win/draw check: five-in-a-row
+function checkBoard(move) {
+  // Horizontal, Vertical, Right Diagonal, Left Diagonal
+  for (let i = 0; i < boxes; i++) {
+    for (let j = 0; j < boxes; j++) {
+      // Horizontal (j..j+4)
+      if (j <= boxes - 5 &&
+          board[i][j] === move &&
+          board[i][j + 1] === move &&
+          board[i][j + 2] === move &&
+          board[i][j + 3] === move &&
+          board[i][j + 4] === move) {
+        win = 1;
+        return;
+      }
+      // Vertical (i..i+4)
+      if (i <= boxes - 5 &&
+          board[i][j] === move &&
+          board[i + 1][j] === move &&
+          board[i + 2][j] === move &&
+          board[i + 3][j] === move &&
+          board[i + 4][j] === move) {
+        win = 1;
+        return;
+      }
+      // Right diagonal
+      if (i <= boxes - 5 && j <= boxes - 5 &&
+          board[i][j] === move &&
+          board[i + 1][j + 1] === move &&
+          board[i + 2][j + 2] === move &&
+          board[i + 3][j + 3] === move &&
+          board[i + 4][j + 4] === move) {
+        win = 1;
+        return;
+      }
+      // Left diagonal
+      if (i <= boxes - 5 && j >= 4 &&
+          board[i][j] === move &&
+          board[i + 1][j - 1] === move &&
+          board[i + 2][j - 2] === move &&
+          board[i + 3][j - 3] === move &&
+          board[i + 4][j - 4] === move) {
+        win = 1;
+        return;
+      }
     }
   }
 
   // Draw
-  if (count === n * n) return 2;
-  return 0;
+  if (count === boxes * boxes) {
+    win = 2;
+  }
 }
 
-// Safely read a cell, returning undefined if out of bounds
-function read(board, r, c) {
-  const n = board.length;
-  if (r < 0 || r >= n || c < 0 || c >= n) return undefined;
-  return board[r][c];
-}
+// === Bot AI (ported from your C code) ===
+// Note: Since JS doesn’t guard array bounds like C, we add explicit bounds checks before indexing.
 
-// Core bot framework (ported from your C "botturn_framework")
-function botturnFramework({
-  move, board, compare, namelessArr, secondArr,
-  threeBoxesInARow, xRange, yRange,
-  checkXMin, checkYMin, checkXMax, checkYMax
-}) {
-  const n = board.length;
-
-  const tryBlock = (i, j) => {
-    let possible_win = 0;
-    let zero_value = 0;
-    let tempx = -1, tempy = -1;
-
-    for (let k = 0; k < 5; k++) {
-      const rr = i + k + namelessArr[k];
-      const cc = j + k + secondArr[k];
-      const cell = read(board, rr, cc);
-      if (cell === move) {
-        possible_win++;
-      } else if (cell === 0) {
-        tempx = rr; tempy = cc; zero_value++;
-      } else {
-        // opponent piece breaks this segment
-      }
-    }
-
-    if (possible_win === compare && zero_value === (5 - compare) && tempx !== -1) {
-      board[tempx][tempy] = 2;
-      return { placed: true, row: tempx, col: tempy };
-    }
-    return { placed: false };
-  };
-
+function botTurnFramework(move, compare, nmls, secondNmls, threeBoxesInARow,
+                          xRange, yRange, checkXMin, checkYMin, checkXMax, checkYMax) {
   if (threeBoxesInARow) {
     for (let i = 0; i < xRange; i++) {
       for (let j = 0; j < yRange; j++) {
-        const a = read(board, i, j);
-        const b = read(board, i + checkXMin, j + checkYMin);
-        const c = read(board, i + checkXMax, j + checkYMax);
-        if (a === move && b === 0 && c === 0) {
-          const res = tryBlock(i, j);
-          if (res.placed) return res;
+        const c1x = i + checkXMin;
+        const c1y = j + checkYMin;
+        const c2x = i + checkXMax;
+        const c2y = j + checkYMax;
+
+        if (!inBounds(i, j) || !inBounds(c1x, c1y) || !inBounds(c2x, c2y)) continue;
+
+        if (board[i][j] === move &&
+            board[c1x][c1y] === 0 &&
+            board[c2x][c2y] === 0) {
+
+          for (let k = 0; k < 5; k++) {
+            const x = i + k + nmls[k];
+            const y = j + k + secondNmls[k];
+            if (!inBounds(x, y)) { possibleWin = tempx = tempy = zeroValue = 0; break; }
+
+            if (board[x][y] === move) {
+              possibleWin++;
+            } else if (board[x][y] === 0) {
+              zeroValue++;
+              if (zeroValue === 1) {
+                tempx = x;
+                tempy = y;
+              }
+            }
+          }
+
+          if (possibleWin === compare && zeroValue === 5 - compare) {
+            board[tempx][tempy] = 2;
+            count++;
+            possibleWin = tempx = tempy = zeroValue = 0;
+            return true;
+          }
+          possibleWin = tempx = tempy = zeroValue = 0;
         }
       }
     }
   } else {
-    // scan all segments in the allowed ranges
-    for (let i = 0; i < n; i++) {
-      for (let j = 0; j <= n - 5; j++) {
-        const res = tryBlock(i, j);
-        if (res.placed) return res;
+    for (let i = 0; i < boxes; i++) {
+      for (let j = 0; j < boxes - 4; j++) {
+        for (let k = 0; k < 5; k++) {
+          const x = i + k + nmls[k];
+          const y = j + k + secondNmls[k];
+          if (!inBounds(x, y)) { possibleWin = tempx = tempy = zeroValue = 0; break; }
+
+          if (board[x][y] === move) {
+            possibleWin++;
+          } else if (board[x][y] === 0) {
+            tempx = x;
+            tempy = y;
+            zeroValue++;
+          }
+        }
+
+        if (possibleWin === compare && zeroValue === 5 - compare) {
+          board[tempx][tempy] = 2;
+          count++;
+          possibleWin = tempx = tempy = zeroValue = 0;
+          return true;
+        }
+        possibleWin = tempx = tempy = zeroValue = 0;
       }
     }
   }
-  return { placed: false };
+  return false;
 }
 
-// Compile calls (ported from "botturn_framework_compilation")
-function botturnFrameworkCompilation(move, board, compare, threeBoxesInARow,
-  checkXMin, checkYMin, checkXMax, checkYMax) {
-
+function botTurnFrameworkCompilation(move, compare, nmls, secondNmls,
+                                     threeBoxesInARow, checkXMin, checkYMin, checkXMax, checkYMax) {
   // Horizontal
-  {
-    const res = botturnFramework({
-      move, board, compare,
-      namelessArr: nameless[1], secondArr: nameless[0],
-      threeBoxesInARow, xRange: board.length, yRange: board.length - 5,
-      checkXMin, checkYMin, checkXMax, checkYMax
-    });
-    if (res.placed) return res;
-  }
-
+  if (botTurnFramework(move, compare, nmls[1], secondNmls[0], threeBoxesInARow,
+                       boxes, boxes - 5, checkXMin, checkYMin, checkXMax, checkYMax)) return true;
   // Vertical
-  {
-    const res = botturnFramework({
-      move, board, compare,
-      namelessArr: nameless[0], secondArr: nameless[1],
-      threeBoxesInARow, xRange: board.length - 5, yRange: board.length,
-      checkXMin, checkYMin, checkXMax, checkYMax
-    });
-    if (res.placed) return res;
-  }
-
+  if (botTurnFramework(move, compare, nmls[0], secondNmls[1], threeBoxesInARow,
+                       boxes - 5, boxes, checkXMin, checkYMin, checkXMax, checkYMax)) return true;
   // Right diagonal
-  {
-    const res = botturnFramework({
-      move, board, compare,
-      namelessArr: nameless[0], secondArr: nameless[0],
-      threeBoxesInARow, xRange: board.length - 5, yRange: board.length - 5,
-      checkXMin, checkYMin, checkXMax, checkYMax
-    });
-    if (res.placed) return res;
-  }
-
+  if (botTurnFramework(move, compare, nmls[0], secondNmls[0], threeBoxesInARow,
+                       boxes - 5, boxes - 5, checkXMin, checkYMin, checkXMax, checkYMax)) return true;
   // Left diagonal
-  {
-    const res = botturnFramework({
-      move, board, compare,
-      namelessArr: nameless[0], secondArr: nameless[2],
-      threeBoxesInARow, xRange: board.length - 5, yRange: board.length,
-      checkXMin, checkYMin, checkXMax, checkYMax
-    });
-    if (res.placed) return res;
-  }
+  if (botTurnFramework(move, compare, nmls[0], secondNmls[2], threeBoxesInARow,
+                       boxes - 5, boxes, checkXMin, checkYMin, checkXMax, checkYMax)) return true;
 
-  return { placed: false };
+  return false;
 }
 
-// Full bot turn (ported from your "botturn" decision order)
-function botTurn(board) {
-  // Try to win: 4 in line for bot (move=2)
-  let res =
-    botturnFrameworkCompilation(2, board, 4, false, 0, 0, 0, 0);
-  if (res.placed) return res;
+function botTurn() {
+  // Winning moves first
+  if (botTurnFrameworkCompilation(2, 4, nameless, nameless, false, 0, 0, 0, 0)) return;
 
-  // Block player 1: 4 in line for opponent (move=1)
-  res = botturnFrameworkCompilation(1, board, 4, false, 0, 0, 0, 0);
-  if (res.placed) return res;
+  // Block opponent winning moves
+  if (botTurnFrameworkCompilation(1, 4, nameless, nameless, false, 0, 0, 0, 0)) return;
 
-  // Advanced three-in-a-row cases (endpoints open)
-  // Horizontal: check ends [0, -1] and [0, 4]
-  res = botturnFramework({
-    move: 1, board, compare: 3,
-    namelessArr: nameless[1], secondArr: nameless[0],
-    threeBoxesInARow: true, xRange: board.length, yRange: board.length - 5,
-    checkXMin: 0, checkYMin: -1, checkXMax: 0, checkYMax: 4
-  });
-  if (res.placed) return res;
+  // Block 3-in-a-row with open ends
+  if (botTurnFramework(1, 3, nameless[1], nameless[0], true, boxes, boxes - 5, 0, -1, 0, 4)) return; // Horizontal
+  if (botTurnFramework(1, 3, nameless[0], nameless[1], true, boxes - 5, boxes, -1, 0, 4, 0)) return; // Vertical
+  if (botTurnFramework(1, 3, nameless[0], nameless[0], true, boxes - 5, boxes - 5, -1, -1, 4, 4)) return; // Right diagonal
+  if (botTurnFramework(1, 3, nameless[0], nameless[2], true, boxes - 5, boxes, -1, 1, 4, -4)) return; // Left diagonal
 
-  // Vertical: ends [-1, 0] and [4, 0]
-  res = botturnFramework({
-    move: 1, board, compare: 3,
-    namelessArr: nameless[0], secondArr: nameless[1],
-    threeBoxesInARow: true, xRange: board.length - 5, yRange: board.length,
-    checkXMin: -1, checkYMin: 0, checkXMax: 4, checkYMax: 0
-  });
-  if (res.placed) return res;
+  // Build or block weaker sequences
+  if (botTurnFrameworkCompilation(1, 3, nameless, nameless, false, 0, 0, 0, 0)) return;
+  if (botTurnFrameworkCompilation(2, 3, nameless, nameless, false, 0, 0, 0, 0)) return;
+  if (botTurnFrameworkCompilation(2, 2, nameless, nameless, false, 0, 0, 0, 0)) return;
+  if (botTurnFrameworkCompilation(2, 1, nameless, nameless, false, 0, 0, 0, 0)) return;
 
-  // Right diagonal: ends [-1, -1] and [4, 4]
-  res = botturnFramework({
-    move: 1, board, compare: 3,
-    namelessArr: nameless[0], secondArr: nameless[0],
-    threeBoxesInARow: true, xRange: board.length - 5, yRange: board.length - 5,
-    checkXMin: -1, checkYMin: -1, checkXMax: 4, checkYMax: 4
-  });
-  if (res.placed) return res;
+  // Fallback random move
+  let ri, rj;
+  do {
+    ri = Math.floor(Math.random() * boxes);
+    rj = Math.floor(Math.random() * boxes);
+  } while (board[ri][rj] !== 0);
 
-  // Left diagonal: ends [-1, 1] and [4, -4]
-  res = botturnFramework({
-    move: 1, board, compare: 3,
-    namelessArr: nameless[0], secondArr: nameless[2],
-    threeBoxesInARow: true, xRange: board.length - 5, yRange: board.length,
-    checkXMin: -1, checkYMin: 1, checkXMax: 4, checkYMax: -4
-  });
-  if (res.placed) return res;
-
-  // Build bot sequences: 3, 2, 1
-  res = botturnFrameworkCompilation(2, board, 3, false, 0, 0, 0, 0);
-  if (res.placed) return res;
-  res = botturnFrameworkCompilation(2, board, 2, false, 0, 0, 0, 0);
-  if (res.placed) return res;
-  res = botturnFrameworkCompilation(2, board, 1, false, 0, 0, 0, 0);
-  if (res.placed) return res;
-
-  // Fallback: pick a random empty cell
-  const empties = [];
-  for (let i = 0; i < board.length; i++) {
-    for (let j = 0; j < board.length; j++) {
-      if (board[i][j] === 0) empties.push([i, j]);
-    }
-  }
-  if (empties.length > 0) {
-    const [r, c] = empties[Math.floor(Math.random() * empties.length)];
-    board[r][c] = 2;
-    return { placed: true, row: r, col: c };
-  }
-  return { placed: false };
+  board[ri][rj] = 2;
+  count++;
 }
 
-module.exports = {
-  createEmptyBoard,
-  checkBoard,
-  botTurn
-};
+// === Attach to window for UI usage ===
+window.initGame = initGame;
+window.resetGame = resetGame;
+window.onCellClick = onCellClick;
+window.getBoard = getBoard;
+window.getStatus = getStatus;

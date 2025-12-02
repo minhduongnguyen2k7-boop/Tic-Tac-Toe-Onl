@@ -59,15 +59,15 @@ io.on('connection', (socket) => {
     const code = (roomCode || '').toUpperCase();
     const room = rooms[code];
     if (!room) {
-      socket.emit('errorMessage', { message: 'Room not found' });
+      socket.emit('errorMessage', { message: 'Không tìm thấy phòng' });
       return;
     }
     if (room.mode === 'bot') {
-      socket.emit('errorMessage', { message: 'This room is bot mode. Create a PvP room.' });
+      socket.emit('errorMessage', { message: 'Đây là phòng chơi với bot. Vui lòng nhập lại mã phòng' });
       return;
     }
     if (room.players.length >= 2) {
-      socket.emit('errorMessage', { message: 'Room is full' });
+      socket.emit('errorMessage', { message: 'Phòng đã đầy' });
       return;
     }
 
@@ -93,11 +93,11 @@ io.on('connection', (socket) => {
 
     const n = room.boxes;
     if (row < 0 || row >= n || col < 0 || col >= n) {
-      socket.emit('errorMessage', { message: 'Out of bounds' });
+      socket.emit('errorMessage', { message: 'Chỉ được chọn ô trong bàn cờ' });
       return;
     }
     if (room.board[row][col] !== 0) {
-      socket.emit('errorMessage', { message: 'Cell occupied' });
+      socket.emit('errorMessage', { message: 'Ô đã được chọn, vui lòng chọn ô khác' });
       return;
     }
 
@@ -110,17 +110,17 @@ if (room.mode === 'pvp') {
   if (idx === -1) return;
   playerNumber = idx + 1;
   if (playerNumber !== room.turn) {
-    socket.emit('errorMessage', { message: 'Not your turn' });
+    socket.emit('errorMessage', { message: 'Không phải lượt của bạn' });
     return;
   }
 } else if (room.mode === 'bot') {
   // In bot mode, only player 1 is human
   if (socket.id !== room.players[0]) {
-    socket.emit('errorMessage', { message: 'Not your game' });
+    socket.emit('errorMessage', { message: 'Không phải trò chơi của bạn' });
     return;
   }
   if (room.turn !== 1) {
-    socket.emit('errorMessage', { message: 'Wait for your turn' });
+    socket.emit('errorMessage', { message: 'Hãy đợi tới lượt của bạn' });
     return;
   }
   playerNumber = 1;

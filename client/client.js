@@ -8,6 +8,20 @@ let turn = 1;
 let board = [];
 let mode = 'pvp'; // 'pvp' or 'bot'
 
+let scale = 1;
+let translateX = 0;
+let translateY = 0;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+
+const boardWrapper = document.getElementById('boardWrapper');
+
+function updateTransform() {
+  boardWrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+  boardWrapper.style.transformOrigin = '0 0';
+}
+
 const boxesInput = document.getElementById('boxes');
 const createLocalBtn = document.getElementById('createLocalBtn');
 const createPvpBtn = document.getElementById('createPvpBtn');
@@ -84,6 +98,34 @@ joinBtn.addEventListener('click', () => {
 
 rematchBtn.addEventListener('click', () => {
   if (roomCode) socket.emit('requestRematch', { roomCode });
+});
+
+boardWrapper.addEventListener('mousedown', (e) => {
+  isDragging = true;
+  dragStartX = e.clientX - translateX;
+  dragStartY = e.clientY - translateY;
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!isDragging) return;
+  translateX = e.clientX - dragStartX;
+  translateY = e.clientY - dragStartY;
+  updateTransform();
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+});
+
+boardWrapper.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  const zoomFactor = 0.1;
+  if (e.deltaY < 0) {
+    scale += zoomFactor; // zoom in
+  } else {
+    scale = Math.max(0.2, scale - zoomFactor); // zoom out, min 0.2
+  }
+  updateTransform();
 });
 
 // Socket events

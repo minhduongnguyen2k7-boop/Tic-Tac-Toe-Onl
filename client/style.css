@@ -51,16 +51,13 @@
   color: #111827; /* Tailwind gray-900 */
 }
 
-.row button:hover {
-  background-color: #e5e7eb; /* subtle hover */
-}
 /* Player colors */
-.p1 {
+.cell.p1 {
   background-color: #3b82f6; /* Tailwind blue-500 */
   color: white;
 }
 
-.p2 {
+.cell.p2 {
   background-color: #f97316; /* Tailwind orange-500 */
   color: white;
 }

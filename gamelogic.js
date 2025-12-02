@@ -68,7 +68,7 @@ function botturnFramework({
   const tryBlock = (i, j) => {
     let possible_win = 0;
     let zero_value = 0;
-    let tempx = -1, tempy = -1;
+    let tempx = 0, tempy = 0;
 
     for (let k = 0; k < 5; k++) {
       const rr = i + k + namelessArr[k];
@@ -219,13 +219,8 @@ function botTurn(board) {
   if (res.placed) return res;
 
   // Extra horizontal three-in-a-row with open ends
-res = botturnFramework({
-  move: 1, board, compare: 3,
-  namelessArr: nameless[1], secondArr: nameless[0],
-  threeBoxesInARow: true, xRange: board.length, yRange: board.length - 5,
-  checkXMin: 0, checkYMin: -1, checkXMax: 0, checkYMax: 4
-});
-if (res.placed) return res;
+ res = botturnFrameworkCompilation(1, board, 3, false, 0, 0, 0, 0);
+  if (res.placed) return res;
 
   // Build bot sequences: 3, 2, 1
   res = botturnFrameworkCompilation(2, board, 3, false, 0, 0, 0, 0);

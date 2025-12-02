@@ -68,13 +68,6 @@ function renderBoard() {
 
 
       div.addEventListener('click', () => onCellClick(r, c));
-
-   // Add mobile tap support
-  div.addEventListener('touchend', (e) => {
-  if (isDragging) return;
-  if (Date.now() - lastDragTime < DRAG_SUPPRESS_MS) return;
-  onCellClick(r, c);
-  });
       fragment.appendChild(div);
     });
   });
@@ -174,42 +167,37 @@ document.addEventListener('mouseup', () => {
 
 
 boardWrapper.addEventListener('touchstart', (e) => {
-  if (e.touches.length === 1) {
-    e.preventDefault(); // only block default for single finger drag
-    const t = e.touches[0];
-    isDragging = true;
-    dragMoved = false;
-    dragStartX = t.clientX - translateX;
-    dragStartY = t.clientY - translateY;
-  } else {
-    // two fingers → allow native pinch zoom
-    isDragging = false;
-  }
+  if (e.touches.length !== 1) return;
+  e.preventDefault(); // avoid synthetic click
+  const t = e.touches[0];
+  isDragging = true;
+  dragMoved = false;
+  dragStartX = t.clientX - translateX;
+  dragStartY = t.clientY - translateY;
 }, { passive: false });
 
 
-
 boardWrapper.addEventListener('touchmove', (e) => {
-  if (e.touches.length === 1) {
-  e.preventDefault(); // drag with one finger
+  if (e.touches.length !== 1) return;
+  e.preventDefault();
   const t = e.touches[0];
+
+
   const dx = t.clientX - (dragStartX + translateX);
   const dy = t.clientY - (dragStartY + translateY);
-
   if (!dragMoved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
     dragMoved = true;
   }
 
+
   translateX = t.clientX - dragStartX;
   translateY = t.clientY - dragStartY;
   updateTransform();
-} else {
-  // two fingers → let browser handle pinch zoom
-}
-});
+}, { passive: false });
 
 
 boardWrapper.addEventListener('touchend', (e) => {
+  e.preventDefault();
   if (isDragging && dragMoved) {
     lastDragTime = Date.now();
   }

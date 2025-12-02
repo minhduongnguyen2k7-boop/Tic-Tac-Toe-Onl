@@ -32,7 +32,9 @@ function updateTransform() {
   boardWrapper.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
   boardWrapper.style.transformOrigin = '0 0';
 }
-
+function isMobileDevice() {
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
 
 const boxesInput = document.getElementById('boxes');
 const createLocalBtn = document.getElementById('createLocalBtn');
@@ -129,8 +131,19 @@ rematchBtn.addEventListener('click', () => {
   if (roomCode) socket.emit('requestRematch', { roomCode });
 });
 
-
-boardWrapper.addEventListener('mousedown', (e) => {
+if (isMobileDevice()) {
+  // Mobile controls: tap cells, pinch zoom (native), one-finger drag optional
+  boardEl.querySelectorAll('.cell').forEach(cell => {
+    cell.addEventListener('touchend', (e) => {
+      const r = cell.dataset.row;
+      const c = cell.dataset.col;
+      onCellClick(Number(r), Number(c));
+    });
+  });
+  // Let browser handle pinch zoom, don’t attach wheel events
+} else {
+  // Desktop controls: mouse drag + wheel zoom
+  boardWrapper.addEventListener('mousedown', (e) => {
   isDragging = true;
   dragMoved = false;
   dragStartX = e.clientX - translateX;
@@ -215,6 +228,8 @@ boardWrapper.addEventListener('wheel', (e) => {
   }
   updateTransform();
 });
+}
+
 
 
 // Socket events

@@ -43,6 +43,7 @@
   display: block;
   margin-bottom: 6px;
   font-size: 15px;
+  font-family: 'Inter', sans-serif;
   color: #111827; /* Tailwind gray-900 */
 }
 

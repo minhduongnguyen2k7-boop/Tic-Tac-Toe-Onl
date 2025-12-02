@@ -30,8 +30,8 @@ let cellSize = 40; // pixels per cell
 function renderBoard() {
   window.requestAnimationFrame(() => {
     const n = board.length;
-    canvas.width = window.innerWidth * 0.9;
-    canvas.height = window.innerHeight * 0.8;
+    canvas.width = board.length * cellSize;
+    canvas.height = board.length * cellSize;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 

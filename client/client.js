@@ -84,13 +84,13 @@ function onCellClick(r, c) {
 if (isDragging) return;
 if (Date.now() - lastDragTime < DRAG_SUPPRESS_MS) return;
   if (!roomCode) return;
-  if (board[r][c] !== 0) { setStatus('Cell occupied'); return; }
+  if (board[r][c] !== 0) { setStatus('Ô đã được chọn. Vui lòng chọn ô khác'); return; }
 
 
   if (mode === 'pvp') {
-    if (myPlayerNumber !== turn) { setStatus('Wait for your turn'); return; }
+    if (myPlayerNumber !== turn) { setStatus('Hãy chờ tới lượt của bạn'); return; }
   } else if (mode === 'bot') {
-    if (turn !== 1) { setStatus('Wait for your turn'); return; }
+    if (turn !== 1) { setStatus('Hãy chờ tới lượt của bạn'); return; }
   } else if (mode === 'local') {
     // In local mode, allow whichever player's turn it is
     // No need to check socket.id
@@ -222,8 +222,9 @@ socket.on('roomCreated', (data) => {
   roomCode = data.roomCode;
   boxes = data.boxes;
   mode = data.mode;
-  setStatus(`Room ${mode === 'bot' ? 'BOT' : 'PVP'} created. Code: ${roomCode}. ${mode === 'bot' ? 'Game starts now.' : 'Waiting for opponent...'}`);
-});
+  setStatus(`Phòng ${mode === 'bot' ? 'BOT' : 'PVP'} đã tạo. Mã: ${roomCode}. ${mode === 'bot' ? 'Trò chơi bắt đầu ngay.' : 'Đang chờ đối thủ...'}`);
+  });
+
 
 
   socket.on('gameStarted', (data) => {
@@ -238,13 +239,13 @@ socket.on('roomCreated', (data) => {
     const me = socket.id;
     const idx = data.players.indexOf(me);
     myPlayerNumber = idx + 1;
-    setStatus(`PvP game ${roomCode}. You are Player ${myPlayerNumber}. Turn: Player ${turn}`);
+    setStatus(`Đang đấu online tại phòng ${roomCode}. Bạn là người chơi thứ ${myPlayerNumber}. Hiện tại đang là lượt của người chơi thứ ${turn}.`);
   } else if (mode === 'bot') {
 myPlayerNumber = 1;
-    setStatus(`Bot game ${roomCode}. You are Player 1. Turn: Player ${turn}`);
+    setStatus(`Đang đấu với bot tại phòng ${roomCode}. Bạn là người chơi thứ 1, bot là người chơi thứ 2.`);
   } else if (mode === 'local') {
     myPlayerNumber = null; // both players share device
-    setStatus(`Local game ${roomCode}. Turn: Player ${turn}`);
+    setStatus(`Đang đấu offline tại phòng ${roomCode}. Hiện tại đang là lượt của người chơi thứ ${turn}`);
   }
 
 
@@ -277,25 +278,25 @@ socket.on('boardUpdated', ({ board: b, lastMove }) => {
 
 
 socket.on('gameFinished', ({ winner }) => {
-  if (winner === 0) setStatus('Game over: Draw');
-  else setStatus(`Game over: Player ${winner} wins`);
+  if (winner === 0) setStatus('Kết thúc: Hòa');
+else setStatus(`Kết thúc: Người chơi thứ ${winner} thắng`);
   rematchBtn.style.display = 'inline-block';
 });
 
 
 socket.on('rematchStarted', ({ board: b, turn: t }) => {
   board = b; turn = t;
-  setStatus(`Rematch started. Turn: Player ${turn}`);
+  setStatus(`Bắt đầu đấu lại. Hiện tại đang là lượt của người chơi thứ ${turn}`);
   renderBoard();
   rematchBtn.style.display = 'none';
 });
 
 
 socket.on('opponentLeft', () => {
-  setStatus('Opponent left. Game ended.');
+  setStatus('Đối thủ đã rời đi. Ván đấu kết thúc.');
   rematchBtn.style.display = 'none';
 });
 
 
-socket.on('errorMessage', ({ message }) => setStatus(`Error: ${message}`));
+socket.on('errorMessage', ({ message }) => setStatus(`Lỗi: ${message}`));
 

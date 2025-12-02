@@ -255,21 +255,8 @@ function botTurn() {
 }
 
 // === Attach to window for UI usage ===
-if (typeof window !== "undefined") {
-  window.initGame = initGame;
-  window.resetGame = resetGame;
-  window.onCellClick = onCellClick;
-  window.getBoard = getBoard;
-  window.getStatus = getStatus;
-}
-
-// Node.js export
-if (typeof module !== "undefined" && module.exports) {
-  module.exports = {
-    initGame,
-    resetGame,
-    onCellClick,
-    getBoard,
-    getStatus
-  };
-}
+window.initGame = initGame;
+window.resetGame = resetGame;
+window.onCellClick = onCellClick;
+window.getBoard = getBoard;
+window.getStatus = getStatus;

@@ -28,37 +28,32 @@ const ctx = canvas.getContext('2d');
 let cellSize = 40; // pixels per cell
 
 function renderBoard() {
-  const n = board.length;
+  window.requestAnimationFrame(() => {
+    const n = board.length;
+    canvas.width = window.innerWidth * 0.9;
+    canvas.height = window.innerHeight * 0.8;
 
-  canvas.width = window.innerWidth * 0.9;
-  canvas.height = window.innerHeight * 0.8;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        const x = (c * cellSize + offsetX) * zoom;
+        const y = (r * cellSize + offsetY) * zoom;
+        const size = cellSize * zoom;
 
-  for (let r = 0; r < n; r++) {
-    for (let c = 0; c < n; c++) {
-      const x = (c * cellSize + offsetX) * zoom;
-      const y = (r * cellSize + offsetY) * zoom;
-      const size = cellSize * zoom;
+        ctx.strokeStyle = '#d1d5db';
+        ctx.strokeRect(x, y, size, size);
 
-      ctx.strokeStyle = '#d1d5db';
-      ctx.strokeRect(x, y, size, size);
-
-      if (board[r][c] === 1) {
-        ctx.fillStyle = '#1e3a8a';
-        ctx.font = `${Math.max(size * 0.6, 12)}px sans-serif`; // ensure readable
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('X', x + size / 2, y + size / 2);
-      } else if (board[r][c] === 2) {
-        ctx.fillStyle = '#166534';
-        ctx.font = `${Math.max(size * 0.6, 12)}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('O', x + size / 2, y + size / 2);
+        if (board[r][c] === 1 || board[r][c] === 2) {
+          ctx.fillStyle = board[r][c] === 1 ? '#1e3a8a' : '#166534';
+          ctx.font = `${Math.max(size * 0.6, 12)}px sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(board[r][c] === 1 ? 'X' : 'O', x + size / 2, y + size / 2);
+        }
       }
     }
-  }
+  });
 }
 
 function onCellClick(r, c) {
@@ -117,7 +112,10 @@ canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
 
   const zoomStep = 0.1;
-  const minZoom = Math.max(canvas.width / (board.length * cellSize), 0.2); // can't zoom out past board
+  const boardPixelSize = board.length * cellSize;
+  const minZoomX = canvas.width / boardPixelSize;
+  const minZoomY = canvas.height / boardPixelSize;
+  const minZoom = Math.max(minZoomX, minZoomY); // allow full board to fit
   const maxZoom = 3;
 
   if (e.deltaY < 0) {

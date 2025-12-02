@@ -102,6 +102,7 @@ function botturnFramework({
         const c = read(board, i + checkXMax, j + checkYMax);
         if (a === move && b === 0 && c === 0) {
           const res = tryBlock(i, j);
+          if (a === undefined || b === undefined || c === undefined) continue;
           if (res.placed) return res;
         }
       }

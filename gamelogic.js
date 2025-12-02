@@ -186,7 +186,7 @@ function botTurn(board) {
   res = botturnFramework({
     move: 1, board, compare: 3,
     namelessArr: nameless[1], secondArr: nameless[0],
-    threeBoxesInARow: true, xRange: board.length, yRange: board.length,
+    threeBoxesInARow: true, xRange: board.length, yRange: board.length - 4,
     checkXMin: 0, checkYMin: -1, checkXMax: 0, checkYMax: 4
   });
   if (res.placed) return res;
@@ -195,7 +195,7 @@ function botTurn(board) {
   res = botturnFramework({
     move: 1, board, compare: 3,
     namelessArr: nameless[0], secondArr: nameless[1],
-    threeBoxesInARow: true, xRange: board.length, yRange: board.length,
+    threeBoxesInARow: true, xRange: board.length - 4, yRange: board.length,
     checkXMin: -1, checkYMin: 0, checkXMax: 4, checkYMax: 0
   });
   if (res.placed) return res;
@@ -204,7 +204,7 @@ function botTurn(board) {
   res = botturnFramework({
     move: 1, board, compare: 3,
     namelessArr: nameless[0], secondArr: nameless[0],
-    threeBoxesInARow: true, xRange: board.length, yRange: board.length,
+    threeBoxesInARow: true, xRange: board.length - 4, yRange: board.length - 4,
     checkXMin: -1, checkYMin: -1, checkXMax: 4, checkYMax: 4
   });
   if (res.placed) return res;
@@ -213,7 +213,7 @@ function botTurn(board) {
   res = botturnFramework({
     move: 1, board, compare: 3,
     namelessArr: nameless[0], secondArr: nameless[2],
-    threeBoxesInARow: true, xRange: board.length, yRange: board.length,
+    threeBoxesInARow: true, xRange: board.length - 4, yRange: board.length,
     checkXMin: -1, checkYMin: 1, checkXMax: 4, checkYMax: -4
   });
   if (res.placed) return res;

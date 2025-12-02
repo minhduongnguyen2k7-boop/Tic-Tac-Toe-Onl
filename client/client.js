@@ -21,19 +21,29 @@ const rematchBtn = document.getElementById('rematchBtn');
 function setStatus(text) { statusEl.textContent = text; }
 
 function renderBoard() {
-  boardEl.innerHTML = '';
+  // Use a fragment for faster DOM building
+  const fragment = document.createDocumentFragment();
+
   boardEl.style.gridTemplateColumns = `repeat(${boxes}, 36px)`;
+
   board.forEach((row, r) => {
     row.forEach((cell, c) => {
       const div = document.createElement('div');
+      div.dataset.row = r;
+      div.dataset.col = c;
+
       div.className = 'cell' + (cell === 1 ? ' p1' : cell === 2 ? ' p2' : '');
       div.textContent = cell === 0 ? '' : cell === 1 ? 'X' : 'O';
-      console.log(`Cell [${r},${c}] =`, div.textContent);
+
       div.addEventListener('click', () => onCellClick(r, c));
-      boardEl.appendChild(div);
+      fragment.appendChild(div);
     });
   });
-  }
+
+  // Clear once, then append all cells
+  boardEl.innerHTML = '';
+  boardEl.appendChild(fragment);
+}
 
 function onCellClick(r, c) {
   if (!roomCode) return;
@@ -115,22 +125,18 @@ socket.on('turnChanged', ({ turn: t }) => {
 
 socket.on('boardUpdated', ({ board: b, lastMove }) => {
   board = b;
-  // If no cells exist yet, build the whole board
-  if (!document.querySelector('[data-row]')) {
-    renderBoard();
-    return;
-  }
 
-  // Otherwise update only the changed cell
   if (lastMove) {
     const { row, col, player } = lastMove;
     const cellEl = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+
     if (cellEl) {
       cellEl.textContent = player === 1 ? 'X' : 'O';
       cellEl.classList.add(player === 1 ? 'p1' : 'p2');
     }
   }
 });
+
 socket.on('gameFinished', ({ winner }) => {
   if (winner === 0) setStatus('Game over: Draw');
   else setStatus(`Game over: Player ${winner} wins`);

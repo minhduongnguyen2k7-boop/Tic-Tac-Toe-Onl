@@ -26,6 +26,26 @@
   background-color: #e5e7eb; /* light gray hover */
 }
 
+.rules-box {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db; /* Tailwind gray-300 */
+  background-color: #f9fafb; /* Tailwind gray-50 */
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #374151; /* Tailwind gray-700 */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.rules-box strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 15px;
+  color: #111827; /* Tailwind gray-900 */
+}
+
 /* Player colors */
 .p1 {
   background-color: #3b82f6; /* Tailwind blue-500 */

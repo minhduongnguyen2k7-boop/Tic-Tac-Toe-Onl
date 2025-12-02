@@ -256,7 +256,7 @@ myPlayerNumber = 1;
 
 socket.on('turnChanged', ({ turn: t }) => {
   turn = t;
-  setStatus(`Turn: Player ${turn}`);
+  setStatus(`Lượt của người chơi thứ ${turn}`);
 });
 
 

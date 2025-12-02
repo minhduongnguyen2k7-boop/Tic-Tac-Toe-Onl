@@ -29,12 +29,9 @@ let cellSize = 40; // pixels per cell
 
 function renderBoard() {
   window.requestAnimationFrame(() => {
-    const n = board.length;
-    canvas.width = board.length * cellSize;
-    canvas.height = board.length * cellSize;
-
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    const n = board.length;
     for (let r = 0; r < n; r++) {
       for (let c = 0; c < n; c++) {
         const x = (c * cellSize + offsetX) * zoom;

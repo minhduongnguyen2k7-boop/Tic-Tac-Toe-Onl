@@ -19,7 +19,7 @@
   background: #eee;
   user-select: none;
   transition: background-color 0.2s;
-  will-change: transform, opacity;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .cell:hover {

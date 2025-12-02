@@ -116,18 +116,19 @@ canvas.addEventListener('click', (e) => {
 canvas.addEventListener('wheel', (e) => {
   e.preventDefault();
 
-  // smaller zoom step
   const zoomStep = 0.1;
+  const minZoom = Math.max(canvas.width / (board.length * cellSize), 0.2); // can't zoom out past board
+  const maxZoom = 3;
 
   if (e.deltaY < 0) {
-    // scroll up → zoom in
-    zoom = Math.min(zoom + zoomStep, 3);   // max 3x
+    zoom = Math.min(zoom + zoomStep, maxZoom);   // scroll up → zoom in
   } else {
-    // scroll down → zoom out
-    zoom = Math.max(zoom - zoomStep, 0.2); // min 0.2x
+    zoom = Math.max(zoom - zoomStep, minZoom);   // scroll down → zoom out
   }
+
   renderBoard();
 });
+
 
 rematchBtn.addEventListener('click', () => {
   if (roomCode) socket.emit('requestRematch', { roomCode });
@@ -161,10 +162,16 @@ socket.on('roomCreated', (data) => {
     setStatus(`Local game ${roomCode}. Turn: Player ${turn}`);
   }
   // Auto zoom so 5x5 cells fill canvas width
+board = createBoard(size);
+// Zoom so 5x5 cells fill canvas width
 zoom = canvas.width / (cellSize * 5);
-offsetX = 0;
-offsetY = 0;
-  renderBoard();
+// Center the view on the middle of the board
+const centerCol = board.length / 2 - 2.5;
+const centerRow = board.length / 2 - 2.5;
+offsetX = -centerCol * cellSize;
+offsetY = -centerRow * cellSize;
+
+renderBoard();
   rematchBtn.style.display = 'none';
 });
 
@@ -175,6 +182,16 @@ socket.on('turnChanged', ({ turn: t }) => {
 
 socket.on('boardUpdated', ({ board: b }) => {
   board = b;
+  board = createBoard(size);
+
+// Zoom so 5x5 cells fill canvas width
+zoom = canvas.width / (cellSize * 5);
+
+// Center the view on the middle of the board
+const centerCol = board.length / 2 - 2.5;
+const centerRow = board.length / 2 - 2.5;
+offsetX = -centerCol * cellSize;
+offsetY = -centerRow * cellSize;
   renderBoard();
 });
 
